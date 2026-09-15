@@ -8,6 +8,9 @@
 // ── 内联规则集（deploy.sh 会把 rules/custom.yaml 同步到这里）──
 const RULES = {
   prepend: [
+    // ── 指纹标记（看到这条 = Script.js 生效）──
+    'DOMAIN,clash-rule-active.local,DIRECT',
+
     // ── BT / 下载站 ──
     'DOMAIN-SUFFIX,gying.org,PROXY',
     'DOMAIN-SUFFIX,torrentdownloads.pro,PROXY',

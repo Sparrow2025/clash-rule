@@ -9,6 +9,9 @@
 
 # 置顶规则：这些域名强制走代理（不依赖订阅的自动测速组）
 prepend:
+  # ── 指纹标记（在客户端规则页看到这条 = Script.js 生效）──
+  - 'DOMAIN,clash-rule-active.local,DIRECT'
+
   # ── BT / 下载站 ──
   - 'DOMAIN-SUFFIX,gying.org,PROXY'
   - 'DOMAIN-SUFFIX,torrentdownloads.pro,PROXY'
