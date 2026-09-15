@@ -1,40 +1,52 @@
-// ============================================================
+#!/usr/bin/env node
+// generate.js —— 由 rules/custom.yaml 生成完整 Script.js
+// 单一数据源：只改 YAML，脚本自动生成
+const fs = require('fs');
+const path = require('path');
+
+const REPO = path.resolve(__dirname, '..');
+const YAML_FILE = path.join(REPO, 'rules', 'custom.yaml');
+const OUT_FILE = path.join(REPO, 'scripts', 'Script.js');
+
+// ── 极简 YAML 读取（只支持本文件用到的结构）──
+function parseRulesYaml(text) {
+  const out = { prepend: [], append: [], delete: [] };
+  let section = null;
+  for (const raw of text.split('\n')) {
+    const line = raw.replace(/\s+$/, '');
+    if (!line || line.trimStart().startsWith('#')) continue;
+    const m = line.match(/^(prepend|append|delete):\s*$/);
+    if (m) { section = m[1]; continue; }
+    if (section) {
+      const item = line.match(/^\s*-\s*['"]?(.*?)['"]?\s*$/);
+      if (item) out[section].push(item[1]);
+    }
+  }
+  return out;
+}
+
+// ── 模板 ──
+const HEADER = `// ============================================================
 // ⚠️ 本文件由 scripts/generate.js 自动生成，请勿手改
 // 单一数据源：rules/custom.yaml
 // 生成命令：node scripts/generate.js
 // ============================================================
+`;
 
+function jsArray(name, arr) {
+  if (!arr.length) return `  ${name}: [],`;
+  const lines = arr.map((r) => `    ${JSON.stringify(r)},`);
+  return `  ${name}: [\n${lines.join('\n')}\n  ],`;
+}
+
+function main() {
+  const rules = parseRulesYaml(fs.readFileSync(YAML_FILE, 'utf8'));
+
+  const script = `${HEADER}
 const RULES = {
-  prepend: [
-    "DOMAIN,clash-rule-active.local,DIRECT",
-    "DOMAIN-SUFFIX,gying.org,PROXY",
-    "DOMAIN-SUFFIX,torrentdownloads.pro,PROXY",
-    "DOMAIN-SUFFIX,torrentdownload.info,PROXY",
-    "DOMAIN-SUFFIX,extratorrent.st,PROXY",
-    "DOMAIN-SUFFIX,1337x.to,PROXY",
-    "DOMAIN-SUFFIX,iTorrents.org,PROXY",
-    "DOMAIN-SUFFIX,captcha-delivery.com,PROXY",
-    "DOMAIN-SUFFIX,github.com,PROXY",
-    "DOMAIN-SUFFIX,openai.com,PROXY",
-    "DOMAIN-SUFFIX,chatgpt.com,PROXY",
-    "DOMAIN-SUFFIX,fonts.googleapis.com,DIRECT",
-    "DOMAIN-SUFFIX,fonts.gstatic.com,DIRECT",
-    "DOMAIN-SUFFIX,dl.google.com,DIRECT",
-    "DOMAIN-SUFFIX,update.googleapis.com,DIRECT",
-    "DOMAIN-SUFFIX,clientservices.googleapis.com,DIRECT",
-    "DOMAIN-SUFFIX,connectivitycheck.gstatic.com,DIRECT",
-    "DOMAIN-SUFFIX,appspot.com,DIRECT",
-    "DOMAIN-SUFFIX,google.com,PROXY",
-    "DOMAIN-SUFFIX,googleapis.com,PROXY",
-    "DOMAIN-SUFFIX,gstatic.com,PROXY",
-    "DOMAIN-SUFFIX,googlevideo.com,PROXY",
-    "DOMAIN-SUFFIX,withgoogle.com,PROXY",
-  ],
-  append: [],
-  delete: [
-    "mtalk.google.com",
-    "googletraveladservices.com",
-  ],
+${jsArray('prepend', rules.prepend)}
+${jsArray('append', rules.append)}
+${jsArray('delete', rules.delete)}
 };
 
 // ── 标准组名解析：把规则里的 PROXY 占位符映射到订阅实际组名 ──
@@ -93,6 +105,14 @@ function main(config, profileName) {
     config.rules = [...prepend, ...append, 'MATCH,' + proxyGroup];
   }
 
-  console.log(`[clash-rule] profile=${profileName} proxyGroup=${proxyGroup} prepend=${prepend.length} append=${append.length} delete=${RULES.delete.length}`);
+  console.log(\`[clash-rule] profile=\${profileName} proxyGroup=\${proxyGroup} prepend=\${prepend.length} append=\${append.length} delete=\${RULES.delete.length}\`);
   return config;
 }
+`;
+
+  fs.writeFileSync(OUT_FILE, script);
+  console.log(`✅ 已生成 ${OUT_FILE}`);
+  console.log(`   prepend=${rules.prepend.length} append=${rules.append.length} delete=${rules.delete.length}`);
+}
+
+main();

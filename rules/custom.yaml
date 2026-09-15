@@ -31,14 +31,25 @@ prepend:
   - 'DOMAIN-SUFFIX,chatgpt.com,PROXY'
 
   # ── Google ──
+  # 静态资源/字体/更新服务：国内可直连，走代理反而慢
+  - 'DOMAIN-SUFFIX,fonts.googleapis.com,DIRECT'
+  - 'DOMAIN-SUFFIX,fonts.gstatic.com,DIRECT'
+  - 'DOMAIN-SUFFIX,dl.google.com,DIRECT'
+  - 'DOMAIN-SUFFIX,update.googleapis.com,DIRECT'
+  - 'DOMAIN-SUFFIX,clientservices.googleapis.com,DIRECT'
+  - 'DOMAIN-SUFFIX,connectivitycheck.gstatic.com,DIRECT'
+  - 'DOMAIN-SUFFIX,appspot.com,DIRECT'
+  # 其余 Google API：走代理
   - 'DOMAIN-SUFFIX,google.com,PROXY'
   - 'DOMAIN-SUFFIX,googleapis.com,PROXY'
+  - 'DOMAIN-SUFFIX,gstatic.com,PROXY'
+  - 'DOMAIN-SUFFIX,googlevideo.com,PROXY'
+  - 'DOMAIN-SUFFIX,withgoogle.com,PROXY'
 
 # 兜底规则（追加到订阅规则之后、MATCH 之前）
 append: []
 
 # 从订阅中删除的规则（精确匹配字符串）
 delete:
-  - 'DOMAIN,dl.google.com,🎯 Direct'
-  - 'DOMAIN,mtalk.google.com,🎯 Direct'
-  - 'DOMAIN-SUFFIX,googletraveladservices.com,🎯 Direct'
+  - 'mtalk.google.com'
+  - 'googletraveladservices.com'

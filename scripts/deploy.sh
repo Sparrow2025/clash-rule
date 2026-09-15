@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# deploy.sh —— 把本仓库的规则同步到 Clash Verge profiles 目录
+# deploy.sh —— 单一数据源部署：
+#   rules/custom.yaml  →  generate.js  →  Script.js  →  Clash Verge profiles
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -8,12 +9,11 @@ PROFILES="$CV_DIR/profiles"
 
 [ -d "$PROFILES" ] || { echo "❌ 找不到 Clash Verge profiles 目录: $PROFILES"; exit 1; }
 
-echo "→ 部署全局 Script.js"
-cp "$REPO_DIR/scripts/Script.js" "$PROFILES/Script.js"
+echo "→ 从 rules/custom.yaml 生成 Script.js"
+node "$REPO_DIR/scripts/generate.js"
 
-echo "→ 部署规则集（备份到 repo 的 rules/）"
-mkdir -p "$REPO_DIR/rules"
-[ -f "$PROFILES/custom-rules.yaml" ] && cp "$PROFILES/custom-rules.yaml" "$REPO_DIR/rules/custom.yaml.bak" || true
+echo "→ 部署到 Clash Verge"
+cp "$REPO_DIR/scripts/Script.js" "$PROFILES/Script.js"
 
 echo
 echo "✅ 部署完成。"
