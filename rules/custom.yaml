@@ -1,0 +1,35 @@
+# ============================================================
+# 自定义规则集 —— 订阅无关
+# ============================================================
+# 组名说明：
+#   PROXY   → Mihomo 内置别名，等价于「走代理」（实际映射到自建标准组）
+#   DIRECT  → 直连
+#   REJECT  → 拒绝
+# ============================================================
+
+# 置顶规则：这些域名强制走代理（不依赖订阅的自动测速组）
+prepend:
+  # ── BT / 下载站 ──
+  - 'DOMAIN-SUFFIX,gying.org,PROXY'
+  - 'DOMAIN-SUFFIX,torrentdownloads.pro,PROXY'
+  - 'DOMAIN-SUFFIX,torrentdownload.info,PROXY'
+  - 'DOMAIN-SUFFIX,extratorrent.st,PROXY'
+  - 'DOMAIN-SUFFIX,1337x.to,PROXY'
+  - 'DOMAIN-SUFFIX,iTorrents.org,PROXY'
+
+  # ── AI 服务 ──
+  - 'DOMAIN-SUFFIX,openai.com,PROXY'
+  - 'DOMAIN-SUFFIX,chatgpt.com,PROXY'
+
+  # ── Google ──
+  - 'DOMAIN-SUFFIX,google.com,PROXY'
+  - 'DOMAIN-SUFFIX,googleapis.com,PROXY'
+
+# 兜底规则（追加到订阅规则之后、MATCH 之前）
+append: []
+
+# 从订阅中删除的规则（精确匹配字符串）
+delete:
+  - 'DOMAIN,dl.google.com,🎯 Direct'
+  - 'DOMAIN,mtalk.google.com,🎯 Direct'
+  - 'DOMAIN-SUFFIX,googletraveladservices.com,🎯 Direct'
