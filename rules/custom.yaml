@@ -17,6 +17,12 @@ prepend:
   - 'DOMAIN-SUFFIX,1337x.to,PROXY'
   - 'DOMAIN-SUFFIX,iTorrents.org,PROXY'
 
+  # ── 反爬 / 验证码服务 ──
+  - 'DOMAIN-SUFFIX,captcha-delivery.com,PROXY'
+
+  # ── GitHub ──
+  - 'DOMAIN-SUFFIX,github.com,PROXY'
+
   # ── AI 服务 ──
   - 'DOMAIN-SUFFIX,openai.com,PROXY'
   - 'DOMAIN-SUFFIX,chatgpt.com,PROXY'

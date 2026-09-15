@@ -16,6 +16,12 @@ const RULES = {
     'DOMAIN-SUFFIX,1337x.to,PROXY',
     'DOMAIN-SUFFIX,iTorrents.org,PROXY',
 
+    // ── 反爬 / 验证码服务 ──
+    'DOMAIN-SUFFIX,captcha-delivery.com,PROXY',
+
+    // ── GitHub ──
+    'DOMAIN-SUFFIX,github.com,PROXY',
+
     // ── AI 服务 ──
     'DOMAIN-SUFFIX,openai.com,PROXY',
     'DOMAIN-SUFFIX,chatgpt.com,PROXY',
@@ -25,10 +31,11 @@ const RULES = {
     'DOMAIN-SUFFIX,googleapis.com,PROXY',
   ],
   append: [],
+  // delete 只写域名，不写目标组名 → 换订阅也不会失配
   delete: [
-    'DOMAIN,dl.google.com,🎯 Direct',
-    'DOMAIN,mtalk.google.com,🎯 Direct',
-    'DOMAIN-SUFFIX,googletraveladservices.com,🎯 Direct',
+    'dl.google.com',
+    'mtalk.google.com',
+    'googletraveladservices.com',
   ],
 };
 
@@ -73,10 +80,18 @@ function main(config, profileName) {
     return rule;
   };
 
-  // 1) 删除订阅中的指定规则
+  // 1) 删除订阅中的指定规则（按域名模糊匹配，忽略目标组名差异）
   if (config.rules && RULES.delete.length) {
-    const del = new Set(RULES.delete);
-    config.rules = config.rules.filter((r) => !del.has(r));
+    config.rules = config.rules.filter((r) => {
+      const parts = r.split(',');
+      // 取规则里表示域名的部分（DOMAIN/DOMAIN-SUFFIX 的第二段）
+      const type = (parts[0] || '').trim().toUpperCase();
+      let domain = '';
+      if (type === 'DOMAIN' || type === 'DOMAIN-SUFFIX' || type === 'DOMAIN-KEYWORD') {
+        domain = (parts[1] || '').trim();
+      }
+      return !RULES.delete.some((d) => domain === d);
+    });
   }
 
   // 2) 前置 + 后置
