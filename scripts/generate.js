@@ -28,7 +28,7 @@ function parseRulesYaml(text) {
 // ── 模板 ──
 const HEADER = `// ============================================================
 // ⚠️ 本文件由 scripts/generate.js 自动生成，请勿手改
-// 单一数据源：rules/custom.yaml
+// 数据源：rules/custom.yaml + rules/auto-proxy.json
 // 生成命令：node scripts/generate.js
 // ============================================================
 `;
@@ -42,7 +42,10 @@ function jsArray(name, arr) {
 function main() {
   const rules = parseRulesYaml(fs.readFileSync(YAML_FILE, 'utf8'));
 
+  const autoProxy = JSON.parse(fs.readFileSync(path.join(REPO, 'rules', 'auto-proxy.json'), 'utf8'));
+  const autoTemplate = fs.readFileSync(path.join(__dirname, 'auto-proxy.template.js'), 'utf8');
   const script = `${HEADER}
+const AUTO_PROXY = ${JSON.stringify(autoProxy, null, 2)};
 const RULES = {
 ${jsArray('prepend', rules.prepend)}
 ${jsArray('append', rules.append)}
@@ -66,9 +69,10 @@ function resolveProxyGroup(config) {
   return best ? best.name : 'PROXY';
 }
 
+${autoTemplate}
 // ── 主入口 ──
 function main(config, profileName) {
-  const proxyGroup = resolveProxyGroup(config);
+  const proxyGroup = installAutoProxy(config);
   const subst = (rule) => {
     const parts = rule.split(',');
     const last = parts[parts.length - 1].trim();
@@ -105,6 +109,12 @@ function main(config, profileName) {
     config.rules = [...prepend, ...append, 'MATCH,' + proxyGroup];
   }
 
+  // 保留现有本机脚本的 Tailscale TUN 绕行设置。
+  config.tun = config.tun || {};
+  config.tun['route-exclude-address'] = Array.from(new Set([
+    ...(config.tun['route-exclude-address'] || []),
+    '100.64.0.0/10', 'fd7a:115c:a1e0::/48',
+  ]));
   console.log(\`[clash-rule] profile=\${profileName} proxyGroup=\${proxyGroup} prepend=\${prepend.length} append=\${append.length} delete=\${RULES.delete.length}\`);
   return config;
 }
